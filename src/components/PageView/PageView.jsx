@@ -145,10 +145,22 @@ const PageView = () => {
                                 {renderPages()}
                             </Document>
                         </div>
-                        <div className="mt-4 flex gap-10 items-center justify-center ">
-                            <MdOutlineArrowCircleLeft className='cursor-pointer' onClick={handlePreviousPage} />
-                            <MdOutlineArrowCircleRight className='cursor-pointer' onClick={handleNextPage} />
-                        </div>
+                        {file && (
+                            <div className="mt-4 flex justify-between">
+                                <MdOutlineArrowCircleLeft
+                                    className={`cursor-pointer ${currentPage === 1 ? 'opacity-50' : ''}`}
+                                    onClick={handlePreviousPage}
+                                    disabled={currentPage === 1}
+                                    size={50}
+                                />
+                                <MdOutlineArrowCircleRight
+                                    className={`cursor-pointer ${currentPage === numPages ? 'opacity-50' : ''}`}
+                                    onClick={handleNextPage}
+                                    disabled={currentPage === numPages+6}
+                                    size={50}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
