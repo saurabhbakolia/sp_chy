@@ -29,6 +29,10 @@ const PageView = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [largePage, setLargePage] = useState(null);
     const [singlePageView, setSinglePageView] = useState(false);
+    const [isAddingArea, setIsAddingArea] = useState(false);
+    const [rectangles, setRectangles] = useState([]);
+    const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+    const [endPosition, setEndPosition] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
@@ -68,7 +72,41 @@ const PageView = () => {
     };
 
     const handleAddArea = () => {
-        // Code to add a new area to the selected page
+        setIsAddingArea(true);
+        // Additional code to handle adding areas to the selected page
+    };
+
+    const handleMouseDown = (e) => {
+        if (isAddingArea) {
+            setStartPosition({ x: e.clientX, y: e.clientY });
+            setEndPosition({ x: e.clientX, y: e.clientY });
+        }
+    };
+
+    const handleMouseMove = (e) => {
+        if (isAddingArea) {
+            setEndPosition({ x: e.clientX, y: e.clientY });
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (isAddingArea) {
+            setIsAddingArea(false);
+            const newRectangle = {
+                x: Math.min(startPosition.x, endPosition.x),
+                y: Math.min(startPosition.y, endPosition.y),
+                width: Math.abs(endPosition.x - startPosition.x),
+                height: Math.abs(endPosition.y - startPosition.y),
+            };
+            setRectangles([...rectangles, newRectangle]);
+            setStartPosition({ x: 0, y: 0 });
+            setEndPosition({ x: 0, y: 0 });
+        }
+    };
+
+    const containerStyle = {
+        cursor: isAddingArea ? 'crosshair' : 'auto',
+        // position: 'relative',
     };
 
     const handleDeletePage = () => {
@@ -89,48 +127,6 @@ const PageView = () => {
         setCurrentPage(Math.min(currentPage + pagesPerRow, numPages));
     };
 
-    // const renderPages = () => {
-    //     if (!numPages) return null;
-
-    //     const pageCount = Math.ceil(numPages / pagesPerRow);
-
-    //     return Array.from({ length: pageCount }, (_, index) => {
-    //         const startPage = (currentPage - 1) + (index * pagesPerRow) + 1;
-    //         const endPage = Math.min(startPage + pagesPerRow - 1, numPages);
-
-    //         return (
-    //             <div key={`row_${index}`} className="flex flex-wrap h-64 overflow-y-auto">
-    //                 {Array.from({ length: endPage - startPage + 1 }, (_, pageIndex) => (
-    //                     <Page
-    //                         key={`page_${startPage + pageIndex}`}
-    //                         pageNumber={startPage + pageIndex}
-    //                         width={containerWidth ? Math.min(containerWidth / pagesPerRow, maxWidth / pagesPerRow) : maxWidth / pagesPerRow}
-    //                     />
-    //                 ))}
-    //             </div>
-    //         );
-    //     });
-    // };
-    // const renderPages = () => {
-    //     if (!numPages) return null;
-
-    //     const pageCount = Math.ceil(numPages / pagesPerRow);
-    //     const startIndex = (currentPage - 1) * pagesPerRow;
-    //     const endIndex = Math.min(startIndex + pagesPerRow, numPages);
-
-    //     return Array.from({ length: endIndex - startIndex }, (_, index) => {
-    //         const pageNumber = startIndex + index + 1;
-
-    //         return (
-    //             <Page
-    //                 key={`page_${pageNumber}`}
-    //                 pageNumber={pageNumber}
-    //                 width={containerWidth ? Math.min(containerWidth / pagesPerRow, maxWidth / pagesPerRow) : maxWidth / pagesPerRow}
-    //             />
-    //         );
-    //     });
-    // };
-
     const handleDoubleClick = (pageNumber) => {
         setCurrentPage(pageNumber);
         setSinglePageView(true);
@@ -141,15 +137,20 @@ const PageView = () => {
         const pageCount = Math.ceil(numPages / pagesPerRow);
         const startIndex = (currentPage - 1) * pagesPerRow;
         const endIndex = Math.min(startIndex + pagesPerRow, numPages);
+        
 
         if (singlePageView) {
             return (
-                <div className="page-container" onDoubleClick={() => setSinglePageView(false)}>
+                <div className="page-container" onDoubleClick={() => setSinglePageView(false)} style={containerStyle} onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseDown={handleMouseDown}
+                >
                     <Page
                         pageNumber={currentPage}
                         width={containerWidth ? Math.min(containerWidth * 0.2, maxWidth) : maxWidth}
                         height={containerWidth ? Math.min(containerWidth * 0.3 * 1.414, maxWidth * 0.4) : maxWidth * 1.414}
                     />
+                    {renderRectangles()}
                 </div>
             );
         } else {
@@ -171,6 +172,29 @@ const PageView = () => {
             });
         }
     };
+
+    // CSS styles for rectangles
+    const rectangleStyle = {
+        position: 'absolute',
+        border: '2px solid red', // Adjust border properties as needed
+    };
+    const renderRectangles = () => {
+        return rectangles.map((rect, index) => (
+            <div
+                key={`rect_${index}`}
+                className="rectangle"
+                style={{
+                    position: 'absolute',
+                    border: '2px solid red', // Adjust border properties as needed
+                    left: `${rect.x}px`,
+                    top: `${rect.y}px`,
+                    width: `${rect.width}px`,
+                    height: `${rect.height}px`,
+                }}
+            />
+        ));
+    };
+
     return (
         <div className='mt-8 mx-8'>
             <div className="flex justify-around items-center">
