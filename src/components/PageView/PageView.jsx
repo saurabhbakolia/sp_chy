@@ -27,6 +27,8 @@ const PageView = () => {
     const [containerRef, setContainerRef] = useState(null);
     const [containerWidth, setContainerWidth] = useState();
     const [currentPage, setCurrentPage] = useState(1);
+    const [largePage, setLargePage] = useState(null);
+    const [singlePageView, setSinglePageView] = useState(false);
 
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
@@ -109,6 +111,30 @@ const PageView = () => {
     //         );
     //     });
     // };
+    // const renderPages = () => {
+    //     if (!numPages) return null;
+
+    //     const pageCount = Math.ceil(numPages / pagesPerRow);
+    //     const startIndex = (currentPage - 1) * pagesPerRow;
+    //     const endIndex = Math.min(startIndex + pagesPerRow, numPages);
+
+    //     return Array.from({ length: endIndex - startIndex }, (_, index) => {
+    //         const pageNumber = startIndex + index + 1;
+
+    //         return (
+    //             <Page
+    //                 key={`page_${pageNumber}`}
+    //                 pageNumber={pageNumber}
+    //                 width={containerWidth ? Math.min(containerWidth / pagesPerRow, maxWidth / pagesPerRow) : maxWidth / pagesPerRow}
+    //             />
+    //         );
+    //     });
+    // };
+
+    const handleDoubleClick = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        setSinglePageView(true);
+    };
     const renderPages = () => {
         if (!numPages) return null;
 
@@ -116,17 +142,34 @@ const PageView = () => {
         const startIndex = (currentPage - 1) * pagesPerRow;
         const endIndex = Math.min(startIndex + pagesPerRow, numPages);
 
-        return Array.from({ length: endIndex - startIndex }, (_, index) => {
-            const pageNumber = startIndex + index + 1;
-
+        if (singlePageView) {
             return (
-                <Page
-                    key={`page_${pageNumber}`}
-                    pageNumber={pageNumber}
-                    width={containerWidth ? Math.min(containerWidth / pagesPerRow, maxWidth / pagesPerRow) : maxWidth / pagesPerRow}
-                />
+                <div className="page-container" onDoubleClick={() => setSinglePageView(false)}>
+                    <Page
+                        pageNumber={currentPage}
+                        width={containerWidth ? Math.min(containerWidth * 0.2, maxWidth) : maxWidth}
+                        height={containerWidth ? Math.min(containerWidth * 0.3 * 1.414, maxWidth * 0.4) : maxWidth * 1.414}
+                    />
+                </div>
             );
-        });
+        } else {
+            return Array.from({ length: endIndex - startIndex }, (_, index) => {
+                const pageNumber = startIndex + index + 1;
+
+                return (
+                    <div
+                        key={`page_${pageNumber}`}
+                        className="page-container"
+                        onDoubleClick={() => handleDoubleClick(index + 1)}
+                    >
+                        <Page
+                            pageNumber={pageNumber}
+                            width={containerWidth ? Math.min(containerWidth / pagesPerRow, maxWidth / pagesPerRow) : maxWidth / pagesPerRow}
+                        />
+                    </div>
+                );
+            });
+        }
     };
     return (
         <div className='mt-8 mx-8'>
@@ -156,7 +199,7 @@ const PageView = () => {
                                 <MdOutlineArrowCircleRight
                                     className={`cursor-pointer ${currentPage === numPages ? 'opacity-50' : ''}`}
                                     onClick={handleNextPage}
-                                    disabled={currentPage === numPages} 
+                                    disabled={currentPage === numPages}
                                     size={50}
                                 />
                             </div>
