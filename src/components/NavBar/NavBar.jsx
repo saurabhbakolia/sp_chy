@@ -17,11 +17,13 @@ function NavBar() {
                     </div>
                     <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                         <div className="flex-shrink-0">
-                            <h1 className="text-2xl font-bold text-gray-600">My App</h1>
+                            <h1 className="text-2xl font-bold text-gray-600">
+                                <Link to="/">PDF Viewer</Link>
+                            </h1>
                         </div>
                         <div className="mx-auto flex flex-row justify-center items-center">
-                            <input type="text" placeholder="Search..." className="px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 bg-gray-100 rounded-l-md" />
-                            <button className="bg-primary text-white px-3 py-3 rounded-r-md focus:outline-none focus:ring focus:border-blue-300">
+                            <input type="text" placeholder="Search..." className="px-3 py-2 outline-none bg-gray-100 rounded-l-md border-none" />
+                            <button className="bg-primary text-white px-3 py-3 rounded-r-md">
                                 <FaSearch />
                             </button>
                         </div>

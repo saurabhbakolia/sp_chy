@@ -156,7 +156,7 @@ const PageView = () => {
                                 <MdOutlineArrowCircleRight
                                     className={`cursor-pointer ${currentPage === numPages ? 'opacity-50' : ''}`}
                                     onClick={handleNextPage}
-                                    disabled={currentPage === numPages+6} 
+                                    disabled={currentPage === numPages} 
                                     size={50}
                                 />
                             </div>
