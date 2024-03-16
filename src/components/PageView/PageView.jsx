@@ -137,7 +137,7 @@ const PageView = () => {
                 </div>
                 <BackgroundButton Text={"Delete"} onClick={handleDeletePage} />
             </div>
-            <div className="mt-8 mx-12">
+            <div className="mt-20 mx-12">
                 <div className="mt-4">
                     <div className='mt-8 mx-8'>
                         <div className="Example__container__document" ref={setContainerRef}>
@@ -146,7 +146,7 @@ const PageView = () => {
                             </Document>
                         </div>
                         {file && (
-                            <div className="mt-4 flex justify-between">
+                            <div className="mt-4 flex justify-center gap-10">
                                 <MdOutlineArrowCircleLeft
                                     className={`cursor-pointer ${currentPage === 1 ? 'opacity-50' : ''}`}
                                     onClick={handlePreviousPage}
@@ -156,7 +156,7 @@ const PageView = () => {
                                 <MdOutlineArrowCircleRight
                                     className={`cursor-pointer ${currentPage === numPages ? 'opacity-50' : ''}`}
                                     onClick={handleNextPage}
-                                    disabled={currentPage === numPages+6}
+                                    disabled={currentPage === numPages+6} 
                                     size={50}
                                 />
                             </div>
