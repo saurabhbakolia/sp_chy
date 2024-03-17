@@ -120,6 +120,7 @@ const PageView = () => {
         if (selectedRectangle) {
             generateImage(1, selectedRectangle);
             // generatePDF(1, selectedRectangle);
+            generateTxtFileFromObject(selectedRectangle);
         }
     };
 
@@ -149,6 +150,29 @@ const PageView = () => {
         }
     };
 
+    const generateTxtFileFromObject = (newRectangle) => {
+        // Convert the object to a string
+        const textData = JSON.stringify(newRectangle, null, 2);
+    
+        // Create a Blob object with the TXT content
+        const blob = new Blob([textData], { type: 'text/plain' });
+    
+        // Create a download link
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'file.txt';
+    
+        // Append the download link to the document body
+        document.body.appendChild(downloadLink);
+    
+        // Trigger the download
+        downloadLink.click();
+    
+        // Clean up by removing the download link
+        document.body.removeChild(downloadLink);
+    };
+
+    
     const generateImage = (pageNumber, rectangle) => {
         if (pageNumber && rectangle) {
             const pageCanvas = document.querySelector('.react-pdf__Page__canvas');
