@@ -5,6 +5,11 @@ import { pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { MdOutlineArrowCircleLeft, MdOutlineArrowCircleRight } from "react-icons/md";
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.js',
@@ -33,6 +38,8 @@ const PageView = () => {
     const [rectangles, setRectangles] = useState([]);
     const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
     const [endPosition, setEndPosition] = useState({ x: 0, y: 0 });
+    const [selectedRectangle, setSelectedRectangle] = useState(null);
+
 
     useEffect(() => {
         const observer = new ResizeObserver((entries) => {
@@ -90,20 +97,111 @@ const PageView = () => {
     };
 
     const handleMouseUp = () => {
-        if (isAddingArea) {
-            setIsAddingArea(false);
-            const newRectangle = {
-                x: Math.min(startPosition.x, endPosition.x),
-                y: Math.min(startPosition.y, endPosition.y),
-                width: Math.abs(endPosition.x - startPosition.x),
-                height: Math.abs(endPosition.y - startPosition.y),
-            };
-            setRectangles([...rectangles, newRectangle]);
-            setStartPosition({ x: 0, y: 0 });
-            setEndPosition({ x: 0, y: 0 });
+        const newRectangle = {
+            x: Math.min(startPosition.x, endPosition.x),
+            y: Math.min(startPosition.y, endPosition.y),
+            width: Math.abs(endPosition.x - startPosition.x),
+            height: Math.abs(endPosition.y - startPosition.y),
+        };
+        setRectangles([...rectangles, newRectangle]);
+        setSelectedRectangle(newRectangle);
+        setStartPosition({ x: 0, y: 0 });
+        setEndPosition({ x: 0, y: 0 });
+
+        // Generate and download the PDF
+        // generatePDF();
+
+        // Generate and download the image
+        // generateImage(1,newRectangle);
+    };
+
+    const handleGenerateImage = () => {
+        // Additional code to handle generating an image from the selected area
+        if (selectedRectangle) {
+            generateImage(1, selectedRectangle);
+            // generatePDF(1, selectedRectangle);
         }
     };
 
+    const generatePDF = (pageNumber, rectangle) => {
+        if (pageNumber && rectangle) {
+            // Get the page container element
+            const pageContainer = document.querySelector('.react-pdf__Page__textContent');
+            
+            // Check if the page container exists
+            if (pageContainer) {
+                // Convert HTML content to an image using html2canvas
+                html2canvas(pageContainer).then(canvas => {
+                    // Create a new jsPDF instance
+                    const doc = new jsPDF();
+                    
+                    // Add the image of the page content to the PDF
+                    doc.addImage(canvas.toDataURL('image/jpeg'), 'JPEG', 10, 10, 190, 277);
+    
+                    // Save the PDF
+                    doc.save(`page_${pageNumber}_coming_soon.pdf`);
+                });
+            } else {
+                console.error('Page container not found.');
+            }
+        } else {
+            console.error('Invalid page number or rectangle.');
+        }
+    };
+
+    const generateImage = (pageNumber, rectangle) => {
+        if (pageNumber && rectangle) {
+            const pageCanvas = document.querySelector('.react-pdf__Page__canvas');
+            console.log('Page Canvas:', pageCanvas);
+            if (pageCanvas) {
+                const imageData = pageCanvas.toDataURL('image/png');
+                // Create an img element
+                const img = new Image();
+                // Set the src attribute to the image data URL
+                img.src = imageData;
+                // Append the img element to the document body or any other desired location
+                document.body.appendChild(img);
+    
+                // Create a link element for downloading the image
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageData;
+                downloadLink.download = `page_${pageNumber}_image.png`;
+    
+                // Append the download link to the document body
+                document.body.appendChild(downloadLink);
+    
+                // Trigger the download
+                downloadLink.click();
+    
+                // Remove the download link from the document
+                document.body.removeChild(downloadLink);
+            } else {
+                console.error('Page canvas not found.');
+            }
+        } else {
+            console.error('Invalid page number or rectangle.');
+        }
+    };
+    
+    
+
+    // const renderRectangles = () => {
+    //     return rectangles.map((rect, index) => (
+    //         <div
+    //             key={`rect_${index}`}
+    //             className="rectangle"
+    //             style={{
+    //                 position: 'absolute',
+    //                 border: '2px solid red', // Adjust border properties as needed
+    //                 left: `${rect.x}px`,
+    //                 top: `${rect.y}px`,
+    //                 width: `${rect.width}px`,
+    //                 height: `${rect.height}px`,
+    //             }}
+    //             onMouseUp={handleMouseUp} // Call handleMouseUp when rectangle drawing is complete
+    //         />
+    //     ));
+    // };
     const containerStyle = {
         cursor: isAddingArea ? 'crosshair' : 'auto',
         // position: 'relative',
@@ -121,15 +219,18 @@ const PageView = () => {
 
     const handlePreviousPage = () => {
         setCurrentPage(Math.max(currentPage - pagesPerRow, 1));
+        setRectangles([]);
     };
 
     const handleNextPage = () => {
         setCurrentPage(Math.min(currentPage + pagesPerRow, numPages));
+        setRectangles([]);
     };
 
     const handleDoubleClick = (pageNumber) => {
         setCurrentPage(pageNumber);
         setSinglePageView(true);
+        setRectangles([]);
     };
     const renderPages = () => {
         if (!numPages) return null;
@@ -137,7 +238,7 @@ const PageView = () => {
         const pageCount = Math.ceil(numPages / pagesPerRow);
         const startIndex = (currentPage - 1) * pagesPerRow;
         const endIndex = Math.min(startIndex + pagesPerRow, numPages);
-        
+
 
         if (singlePageView) {
             return (
@@ -147,8 +248,8 @@ const PageView = () => {
                 >
                     <Page
                         pageNumber={currentPage}
-                        width={containerWidth ? Math.min(containerWidth * 0.2, maxWidth) : maxWidth}
-                        height={containerWidth ? Math.min(containerWidth * 0.3 * 1.414, maxWidth * 0.4) : maxWidth * 1.414}
+                        width={containerWidth ? Math.min(containerWidth * 0.6, maxWidth) : maxWidth}
+                        height={containerWidth ? Math.min(containerWidth * 0.6 * 1.414, maxWidth * 0.4) : maxWidth * 1.414}
                     />
                     {renderRectangles()}
                 </div>
@@ -176,7 +277,7 @@ const PageView = () => {
     // CSS styles for rectangles
     const rectangleStyle = {
         position: 'absolute',
-        border: '2px solid red', // Adjust border properties as needed
+        border: '2px solid blue', // Adjust border properties as needed
     };
     const renderRectangles = () => {
         return rectangles.map((rect, index) => (
@@ -185,7 +286,7 @@ const PageView = () => {
                 className="rectangle"
                 style={{
                     position: 'absolute',
-                    border: '2px solid red', // Adjust border properties as needed
+                    border: '2px solid blue', // Adjust border properties as needed
                     left: `${rect.x}px`,
                     top: `${rect.y}px`,
                     width: `${rect.width}px`,
@@ -201,6 +302,7 @@ const PageView = () => {
                 <div className='flex justify-start gap-8'>
                     <BackgroundButton Text={"Add Page"} onClick={handleAddPage} />
                     <BackgroundButton Text={"+ Add area"} onClick={handleAddArea} />
+                    <BackgroundButton Text={"Generate image"} onClick={handleGenerateImage} />
                 </div>
                 <BackgroundButton Text={"Delete"} onClick={handleDeletePage} />
             </div>
