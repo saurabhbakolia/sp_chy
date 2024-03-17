@@ -127,17 +127,17 @@ const PageView = () => {
         if (pageNumber && rectangle) {
             // Get the page container element
             const pageContainer = document.querySelector('.react-pdf__Page__textContent');
-            
+
             // Check if the page container exists
             if (pageContainer) {
                 // Convert HTML content to an image using html2canvas
                 html2canvas(pageContainer).then(canvas => {
                     // Create a new jsPDF instance
                     const doc = new jsPDF();
-                    
+
                     // Add the image of the page content to the PDF
                     doc.addImage(canvas.toDataURL('image/jpeg'), 'JPEG', 10, 10, 190, 277);
-    
+
                     // Save the PDF
                     doc.save(`page_${pageNumber}_coming_soon.pdf`);
                 });
@@ -154,25 +154,42 @@ const PageView = () => {
             const pageCanvas = document.querySelector('.react-pdf__Page__canvas');
             console.log('Page Canvas:', pageCanvas);
             if (pageCanvas) {
-                const imageData = pageCanvas.toDataURL('image/png');
-                // Create an img element
-                const img = new Image();
-                // Set the src attribute to the image data URL
-                img.src = imageData;
-                // Append the img element to the document body or any other desired location
-                document.body.appendChild(img);
-    
+                // const imageData = pageCanvas.toDataURL('image/png');
+                // const img = new Image();
+                // img.src = imageData;
+                // document.body.appendChild(img);
+
+
+                const canvasContext = pageCanvas.getContext('2d');
+
+                // Define the region to capture based on the rectangle coordinates
+                const { x, y, width, height } = rectangle;
+                console.log('Rectangle:', rectangle);
+
+                // Create a new canvas to hold the cropped region
+                const croppedCanvas = document.createElement('canvas');
+                const croppedContext = croppedCanvas.getContext('2d');
+
+                // Set the size of the new canvas to match the cropped region
+                croppedCanvas.width = width;
+                croppedCanvas.height = height;
+
+                // Draw the cropped region on the new canvas
+                croppedContext.drawImage(pageCanvas, 0, 0, width, height, 0, 0, width, height);
+
+                // Generate the image data URL for the cropped region
+                const imageData = croppedCanvas.toDataURL('image/png');
                 // Create a link element for downloading the image
                 const downloadLink = document.createElement('a');
                 downloadLink.href = imageData;
                 downloadLink.download = `page_${pageNumber}_image.png`;
-    
+
                 // Append the download link to the document body
                 document.body.appendChild(downloadLink);
-    
+
                 // Trigger the download
                 downloadLink.click();
-    
+
                 // Remove the download link from the document
                 document.body.removeChild(downloadLink);
             } else {
@@ -182,8 +199,8 @@ const PageView = () => {
             console.error('Invalid page number or rectangle.');
         }
     };
-    
-    
+
+
 
     // const renderRectangles = () => {
     //     return rectangles.map((rect, index) => (
